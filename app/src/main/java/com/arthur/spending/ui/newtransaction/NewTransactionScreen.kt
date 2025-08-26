@@ -11,19 +11,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.arthur.spending.data.SpendingDatabase
+import com.arthur.spending.data.TransactionRepository
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewTransactionScreen(
-    viewModel: NewTransactionViewModel = viewModel()
-) {
+fun NewTransactionScreen() {
+    val context = LocalContext.current
+    val viewModel: NewTransactionViewModel = viewModel {
+        val database = SpendingDatabase.getDatabase(context)
+        val repository = TransactionRepository(database.transactionDao())
+        NewTransactionViewModel(repository)
+    }
+    10
     val uiState by viewModel.uiState.collectAsState()
 
     Column(
