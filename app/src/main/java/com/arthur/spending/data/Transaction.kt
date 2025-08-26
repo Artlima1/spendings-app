@@ -11,5 +11,6 @@ data class Transaction(
     val value: Double,
     val date: Date,
     val category: String,
-    val location: String
+    val location: String,
+    val description: String = ""
 )

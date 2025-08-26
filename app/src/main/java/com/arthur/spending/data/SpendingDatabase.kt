@@ -8,7 +8,7 @@ import android.content.Context
 
 @Database(
     entities = [Transaction::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -25,7 +25,8 @@ abstract class SpendingDatabase : RoomDatabase() {
                     context.applicationContext,
                     SpendingDatabase::class.java,
                     "spending_database"
-                ).build()
+                ).fallbackToDestructiveMigration() // For now, just recreate the database
+                .build()
                 INSTANCE = instance
                 instance
             }

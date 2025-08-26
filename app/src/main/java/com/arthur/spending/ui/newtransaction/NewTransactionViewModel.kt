@@ -15,6 +15,7 @@ data class NewTransactionUiState(
     val categoryQuery: String = "",
     val isDropdownExpanded: Boolean = false,
     val location: String = "",
+    val description: String = "",
     val date: String = "",
     val time: String = "",
     val showConfirmationDialog: Boolean = false,
@@ -116,6 +117,10 @@ class NewTransactionViewModel(
         _uiState.value = _uiState.value.copy(location = location)
     }
     
+    fun updateDescription(description: String) {
+        _uiState.value = _uiState.value.copy(description = description)
+    }
+    
     fun setCurrentDateTime() {
         val now = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -163,7 +168,7 @@ class NewTransactionViewModel(
         val currentState = _uiState.value
         Log.d(TAG, "saveTransaction called")
         Log.d(TAG, "Current state - Value: ${currentState.valueInCents}, Category: '${currentState.categoryQuery}', Location: '${currentState.location}'")
-        Log.d(TAG, "Current state - Date: '${currentState.date}', Time: '${currentState.time}'")
+        Log.d(TAG, "Current state - Description: '${currentState.description}', Date: '${currentState.date}', Time: '${currentState.time}'")
         
         // Validate that we have minimum required data
         if (currentState.valueInCents <= 0 || currentState.categoryQuery.isBlank()) {
@@ -194,7 +199,8 @@ class NewTransactionViewModel(
             value = valueInEuros, // Convert cents to euros
             date = dateTime,
             category = currentState.categoryQuery.trim(),
-            location = currentState.location.trim()
+            location = currentState.location.trim(),
+            description = currentState.description.trim()
         )
         
         Log.d(TAG, "Created transaction object:")
@@ -202,6 +208,7 @@ class NewTransactionViewModel(
         Log.d(TAG, "  Date: $dateTime")
         Log.d(TAG, "  Category: '${transaction.category}'")
         Log.d(TAG, "  Location: '${transaction.location}'")
+        Log.d(TAG, "  Description: '${transaction.description}'")
         
         // Save to database
         viewModelScope.launch {

@@ -98,6 +98,14 @@ fun NewTransactionScreen() {
             modifier = Modifier.fillMaxWidth()
         )
 
+        OutlinedTextField(
+            value = uiState.description,
+            onValueChange = { viewModel.updateDescription(it) },
+            label = { Text("Description (Optional)") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3
+        )
+
         Text(
             text = "Date & Time",
             fontSize = 16.sp,
@@ -171,6 +179,9 @@ fun NewTransactionScreen() {
                     Text("Value: €${uiState.formattedValue}", style = MaterialTheme.typography.bodyMedium)
                     Text("Category: ${uiState.categoryQuery}", style = MaterialTheme.typography.bodyMedium)
                     Text("Location: ${uiState.location}", style = MaterialTheme.typography.bodyMedium)
+                    if (uiState.description.isNotEmpty()) {
+                        Text("Description: ${uiState.description}", style = MaterialTheme.typography.bodyMedium)
+                    }
                     if (uiState.date.isNotEmpty() && uiState.time.isNotEmpty()) {
                         Text("Date & Time: ${uiState.date} at ${uiState.time}", style = MaterialTheme.typography.bodyMedium)
                     }

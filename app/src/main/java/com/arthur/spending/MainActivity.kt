@@ -18,7 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.arthur.spending.ui.dashboard.DashboardScreen
 import com.arthur.spending.ui.newtransaction.NewTransactionScreen
-import com.arthur.spending.ui.notifications.NotificationsScreen
+import com.arthur.spending.ui.transactions.TransactionsScreen
 import com.arthur.spending.ui.theme.SpendingsTheme
 
 // @AndroidEntryPoint
@@ -51,9 +51,9 @@ class MainActivity : ComponentActivity() {
                                     label = "New Transaction"
                                 ),
                                 NavigationItem(
-                                    route = "notifications",
+                                    route = "transactions",
                                     icon = R.drawable.ic_notifications_black_24dp,
-                                    label = "Notifications"
+                                    label = "Transactions"
                                 )
                             )
 
@@ -92,8 +92,8 @@ class MainActivity : ComponentActivity() {
                         composable("newtransaction") {
                             NewTransactionScreen()
                         }
-                        composable("notifications") {
-                            NotificationsScreen()
+                        composable("transactions") {
+                            TransactionsScreen()
                         }
                     }
                 }
