@@ -51,9 +51,13 @@ fun NewTransactionScreen() {
         OutlinedTextField(
             value = uiState.formattedValue,
             onValueChange = { input -> viewModel.updateValue(input) },
-            label = { Text("Value") },
+            label = { Text("Value *") },
             prefix = { Text("€") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            isError = uiState.hasValueError,
+            supportingText = if (uiState.hasValueError) {
+                { Text("Value is required", color = MaterialTheme.colorScheme.error) }
+            } else null,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -64,8 +68,12 @@ fun NewTransactionScreen() {
             OutlinedTextField(
                 value = uiState.categoryQuery,
                 onValueChange = { viewModel.updateCategoryQuery(it) },
-                label = { Text("Category") },
+                label = { Text("Category *") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isDropdownExpanded) },
+                isError = uiState.hasCategoryError,
+                supportingText = if (uiState.hasCategoryError) {
+                    { Text("Category is required", color = MaterialTheme.colorScheme.error) }
+                } else null,
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth()
@@ -94,7 +102,11 @@ fun NewTransactionScreen() {
         OutlinedTextField(
             value = uiState.location,
             onValueChange = { viewModel.updateLocation(it) },
-            label = { Text("Location") },
+            label = { Text("Location *") },
+            isError = uiState.hasLocationError,
+            supportingText = if (uiState.hasLocationError) {
+                { Text("Location is required", color = MaterialTheme.colorScheme.error) }
+            } else null,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -107,9 +119,10 @@ fun NewTransactionScreen() {
         )
 
         Text(
-            text = "Date & Time",
+            text = "Date & Time *",
             fontSize = 16.sp,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp),
+            color = if (uiState.hasDateTimeError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
         )
 
         Row(
@@ -121,6 +134,7 @@ fun NewTransactionScreen() {
                 onValueChange = { },
                 label = { Text("Date") },
                 readOnly = true,
+                isError = uiState.hasDateTimeError,
                 interactionSource = remember { MutableInteractionSource() }
                     .also { interactionSource ->
                         LaunchedEffect(interactionSource) {
@@ -139,6 +153,7 @@ fun NewTransactionScreen() {
                 onValueChange = { },
                 label = { Text("Time") },
                 readOnly = true,
+                isError = uiState.hasDateTimeError,
                 interactionSource = remember { MutableInteractionSource() }
                     .also { interactionSource ->
                         LaunchedEffect(interactionSource) {
@@ -153,6 +168,15 @@ fun NewTransactionScreen() {
             )
         }
 
+        if (uiState.hasDateTimeError) {
+            Text(
+                text = "Date and time are required",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+
         OutlinedButton(
             onClick = { viewModel.setCurrentDateTime() },
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -162,6 +186,7 @@ fun NewTransactionScreen() {
 
         Button(
             onClick = { viewModel.showConfirmationDialog() },
+            enabled = uiState.isFormValid,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Transaction")

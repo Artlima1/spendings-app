@@ -21,7 +21,11 @@ data class NewTransactionUiState(
     val showConfirmationDialog: Boolean = false,
     val showDatePicker: Boolean = false,
     val showTimePicker: Boolean = false,
-    val allCategories: List<String> = listOf("Food", "Transportation", "Entertainment", "Shopping", "Bills", "Healthcare")
+    val allCategories: List<String> = listOf("Food", "Transportation", "Entertainment", "Shopping", "Bills", "Healthcare"),
+    val hasValueError: Boolean = false,
+    val hasCategoryError: Boolean = false,
+    val hasLocationError: Boolean = false,
+    val hasDateTimeError: Boolean = false
 ) {
     val formattedValue: String
         get() {
@@ -39,6 +43,13 @@ data class NewTransactionUiState(
     
     val showCreateNewOption: Boolean
         get() = categoryQuery.isNotBlank() && !filteredCategories.any { it.equals(categoryQuery, ignoreCase = true) }
+    
+    val isFormValid: Boolean
+        get() = valueInCents > 0 && 
+                categoryQuery.isNotBlank() && 
+                location.isNotBlank() && 
+                date.isNotBlank() && 
+                time.isNotBlank()
 }
 
 class NewTransactionViewModel(
@@ -94,11 +105,17 @@ class NewTransactionViewModel(
             _uiState.value.valueInCents
         }
         Log.d(TAG, "updateValue: '$input' -> '$digitsOnly' -> $newValue cents")
-        _uiState.value = _uiState.value.copy(valueInCents = newValue)
+        _uiState.value = _uiState.value.copy(
+            valueInCents = newValue,
+            hasValueError = false // Clear error when user types
+        )
     }
     
     fun updateCategoryQuery(query: String) {
-        _uiState.value = _uiState.value.copy(categoryQuery = query)
+        _uiState.value = _uiState.value.copy(
+            categoryQuery = query,
+            hasCategoryError = false // Clear error when user types
+        )
     }
     
     fun setDropdownExpanded(expanded: Boolean) {
@@ -114,7 +131,10 @@ class NewTransactionViewModel(
     }
     
     fun updateLocation(location: String) {
-        _uiState.value = _uiState.value.copy(location = location)
+        _uiState.value = _uiState.value.copy(
+            location = location,
+            hasLocationError = false // Clear error when user types
+        )
     }
     
     fun updateDescription(description: String) {
@@ -127,13 +147,29 @@ class NewTransactionViewModel(
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         _uiState.value = _uiState.value.copy(
             date = dateFormat.format(now.time),
-            time = timeFormat.format(now.time)
+            time = timeFormat.format(now.time),
+            hasDateTimeError = false // Clear error when date/time is set
         )
     }
     
     fun showConfirmationDialog() {
         Log.d(TAG, "showConfirmationDialog called")
-        _uiState.value = _uiState.value.copy(showConfirmationDialog = true)
+        validateForm()
+        if (_uiState.value.isFormValid) {
+            _uiState.value = _uiState.value.copy(showConfirmationDialog = true)
+        }
+    }
+    
+    private fun validateForm() {
+        val currentState = _uiState.value
+        _uiState.value = currentState.copy(
+            hasValueError = currentState.valueInCents <= 0,
+            hasCategoryError = currentState.categoryQuery.isBlank(),
+            hasLocationError = currentState.location.isBlank(),
+            hasDateTimeError = currentState.date.isBlank() || currentState.time.isBlank()
+        )
+        Log.d(TAG, "Form validation - Valid: ${_uiState.value.isFormValid}")
+        Log.d(TAG, "Validation errors - Value: ${_uiState.value.hasValueError}, Category: ${_uiState.value.hasCategoryError}, Location: ${_uiState.value.hasLocationError}, DateTime: ${_uiState.value.hasDateTimeError}")
     }
     
     fun hideConfirmationDialog() {
@@ -149,7 +185,11 @@ class NewTransactionViewModel(
     }
     
     fun updateDate(date: String) {
-        _uiState.value = _uiState.value.copy(date = date, showDatePicker = false)
+        _uiState.value = _uiState.value.copy(
+            date = date, 
+            showDatePicker = false,
+            hasDateTimeError = false // Clear error when date is updated
+        )
     }
     
     fun showTimePicker() {
@@ -161,7 +201,11 @@ class NewTransactionViewModel(
     }
     
     fun updateTime(time: String) {
-        _uiState.value = _uiState.value.copy(time = time, showTimePicker = false)
+        _uiState.value = _uiState.value.copy(
+            time = time, 
+            showTimePicker = false,
+            hasDateTimeError = false // Clear error when time is updated
+        )
     }
     
     fun saveTransaction() {
