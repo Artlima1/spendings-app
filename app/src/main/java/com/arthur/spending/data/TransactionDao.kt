@@ -23,8 +23,14 @@ interface TransactionDao {
     @Query("SELECT SUM(value) FROM transactions")
     fun getTotalSpending(): Flow<Double?>
 
+    @Query("SELECT SUM(value) FROM transactions WHERE date >= :startDate AND date <= :endDate")
+    fun getTotalSpendingByDateRange(startDate: Long, endDate: Long): Flow<Double?>
+
     @Query("SELECT SUM(value) FROM transactions WHERE category = :category")
     fun getTotalSpendingByCategory(category: String): Flow<Double?>
+
+    @Query("SELECT SUM(value) FROM transactions WHERE category = :category AND date >= :startDate AND date <= :endDate")
+    fun getTotalSpendingByCategoryAndDateRange(category: String, startDate: Long, endDate: Long): Flow<Double?>
 
     @Insert
     suspend fun insertTransaction(transaction: Transaction)

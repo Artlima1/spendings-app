@@ -42,12 +42,12 @@ class MainActivity : ComponentActivity() {
                             val items = listOf(
                                 NavigationItem(
                                     route = "dashboard",
-                                    icon = R.drawable.ic_dashboard_black_24dp,
+                                    icon = R.drawable.ic_dashboard,
                                     label = "Dashboard"
                                 ),
                                 NavigationItem(
                                     route = "newtransaction",
-                                    icon = android.R.drawable.ic_menu_add,
+                                    icon = R.drawable.ic_add,
                                     label = "New Transaction"
                                 ),
                                 NavigationItem(
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "newtransaction",
+                        startDestination = "dashboard",
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("dashboard") {

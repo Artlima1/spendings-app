@@ -33,6 +33,12 @@ class TransactionsViewModel(
 
     init {
         Log.d(TAG, "TransactionsViewModel initialized")
+        // Set initial date range to current month
+        val currentMonth = getCurrentMonthDateRange()
+        _uiState.value = _uiState.value.copy(
+            startDate = currentMonth.first,
+            endDate = currentMonth.second
+        )
         loadCategories()
         loadTransactions()
     }
@@ -151,5 +157,30 @@ class TransactionsViewModel(
             isLoading = true
         )
         loadTransactions()
+    }
+    
+    private fun getCurrentMonthDateRange(): Pair<Date, Date> {
+        val calendar = Calendar.getInstance()
+        val today = Date()
+        
+        // Set to start of current month
+        calendar.time = today
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfMonth = calendar.time
+        
+        // End date is today
+        calendar.time = today
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val endOfDay = calendar.time
+        
+        Log.d(TAG, "Default date range: ${startOfMonth} to ${endOfDay}")
+        return Pair(startOfMonth, endOfDay)
     }
 }

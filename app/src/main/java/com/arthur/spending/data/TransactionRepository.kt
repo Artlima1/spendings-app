@@ -23,8 +23,18 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
 
     fun getTotalSpending(): Flow<Double?> = transactionDao.getTotalSpending()
 
+    fun getTotalSpendingByDateRange(startDate: Long, endDate: Long): Flow<Double?> = 
+        transactionDao.getTotalSpendingByDateRange(startDate, endDate)
+
     fun getTotalSpendingByCategory(category: String): Flow<Double?> = 
         transactionDao.getTotalSpendingByCategory(category)
+
+    fun getTotalSpendingByCategoryAndDateRange(
+        category: String, 
+        startDate: Long, 
+        endDate: Long
+    ): Flow<Double?> = 
+        transactionDao.getTotalSpendingByCategoryAndDateRange(category, startDate, endDate)
 
     suspend fun insertTransaction(transaction: Transaction) {
         transactionDao.insertTransaction(transaction)
