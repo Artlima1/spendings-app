@@ -1,5 +1,6 @@
 package com.arthur.spending.ui.transactions
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,7 +48,9 @@ data class TransactionItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionsScreen() {
+fun TransactionsScreen(
+    onTransactionClick: (Long) -> Unit = {}
+) {
     val context = LocalContext.current
     val viewModel: TransactionsViewModel = viewModel {
         val database = SpendingDatabase.getDatabase(context)
@@ -140,7 +143,10 @@ fun TransactionsScreen() {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.transactions) { transaction ->
-                        TransactionCard(transaction = transaction)
+                        TransactionCard(
+                            transaction = transaction,
+                            onClick = { onTransactionClick(transaction.id) }
+                        )
                     }
                 }
             }
@@ -149,9 +155,14 @@ fun TransactionsScreen() {
 }
 
 @Composable
-fun TransactionCard(transaction: TransactionItem) {
+fun TransactionCard(
+    transaction: TransactionItem,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(

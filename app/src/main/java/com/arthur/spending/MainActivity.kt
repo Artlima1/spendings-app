@@ -16,9 +16,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.arthur.spending.ui.dashboard.DashboardScreen
 import com.arthur.spending.ui.newtransaction.NewTransactionScreen
 import com.arthur.spending.ui.transactions.TransactionsScreen
+import com.arthur.spending.ui.transactions.TransactionDetailScreen
 import com.arthur.spending.ui.theme.SpendingsTheme
 
 // @AndroidEntryPoint
@@ -93,7 +96,23 @@ class MainActivity : ComponentActivity() {
                             NewTransactionScreen()
                         }
                         composable("transactions") {
-                            TransactionsScreen()
+                            TransactionsScreen(
+                                onTransactionClick = { transactionId ->
+                                    navController.navigate("transaction_detail/$transactionId")
+                                }
+                            )
+                        }
+                        composable(
+                            "transaction_detail/{transactionId}",
+                            arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
+                        ) { backStackEntry ->
+                            val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: 0L
+                            TransactionDetailScreen(
+                                transactionId = transactionId,
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
                     }
                 }
