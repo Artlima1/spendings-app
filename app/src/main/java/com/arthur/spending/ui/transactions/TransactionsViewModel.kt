@@ -13,7 +13,11 @@ import java.util.*
 data class TransactionsUiState(
     val transactions: List<TransactionItem> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val categories: List<String> = emptyList(),
+    val selectedCategory: String? = null,
+    val startDate: Date? = null,
+    val endDate: Date? = null
 )
 
 class TransactionsViewModel(
@@ -29,7 +33,22 @@ class TransactionsViewModel(
 
     init {
         Log.d(TAG, "TransactionsViewModel initialized")
+        loadCategories()
         loadTransactions()
+    }
+
+    private fun loadCategories() {
+        Log.d(TAG, "Loading categories from database...")
+        viewModelScope.launch {
+            try {
+                repository.getAllCategories().collect { categories ->
+                    Log.d(TAG, "Loaded ${categories.size} categories from database")
+                    _uiState.value = _uiState.value.copy(categories = categories)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error loading categories: ${e.message}", e)
+            }
+        }
     }
 
     private fun loadTransactions() {
@@ -37,7 +56,36 @@ class TransactionsViewModel(
         
         viewModelScope.launch {
             try {
-                repository.getAllTransactions().collect { transactions ->
+                val currentState = _uiState.value
+                val flow = when {
+                    currentState.selectedCategory != null && 
+                    currentState.startDate != null && 
+                    currentState.endDate != null -> {
+                        Log.d(TAG, "Filtering by category '${currentState.selectedCategory}' and date range")
+                        repository.getTransactionsByCategoryAndDateRange(
+                            currentState.selectedCategory!!,
+                            currentState.startDate!!.time,
+                            currentState.endDate!!.time
+                        )
+                    }
+                    currentState.selectedCategory != null -> {
+                        Log.d(TAG, "Filtering by category '${currentState.selectedCategory}'")
+                        repository.getTransactionsByCategory(currentState.selectedCategory!!)
+                    }
+                    currentState.startDate != null && currentState.endDate != null -> {
+                        Log.d(TAG, "Filtering by date range")
+                        repository.getTransactionsByDateRange(
+                            currentState.startDate!!.time,
+                            currentState.endDate!!.time
+                        )
+                    }
+                    else -> {
+                        Log.d(TAG, "Loading all transactions")
+                        repository.getAllTransactions()
+                    }
+                }
+                
+                flow.collect { transactions ->
                     Log.d(TAG, "Loaded ${transactions.size} transactions from database")
                     
                     val transactionItems = transactions.map { transaction ->
@@ -72,6 +120,36 @@ class TransactionsViewModel(
     fun refreshTransactions() {
         Log.d(TAG, "Refreshing transactions...")
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        loadTransactions()
+    }
+    
+    fun setCategory(category: String?) {
+        Log.d(TAG, "Setting category filter: '$category'")
+        _uiState.value = _uiState.value.copy(
+            selectedCategory = category,
+            isLoading = true
+        )
+        loadTransactions()
+    }
+    
+    fun setDateRange(startDate: Date?, endDate: Date?) {
+        Log.d(TAG, "Setting date range filter: $startDate to $endDate")
+        _uiState.value = _uiState.value.copy(
+            startDate = startDate,
+            endDate = endDate,
+            isLoading = true
+        )
+        loadTransactions()
+    }
+    
+    fun clearFilters() {
+        Log.d(TAG, "Clearing all filters")
+        _uiState.value = _uiState.value.copy(
+            selectedCategory = null,
+            startDate = null,
+            endDate = null,
+            isLoading = true
+        )
         loadTransactions()
     }
 }

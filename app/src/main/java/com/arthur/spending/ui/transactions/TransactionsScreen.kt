@@ -3,6 +3,9 @@ package com.arthur.spending.ui.transactions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,6 +68,18 @@ fun TransactionsScreen() {
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        FilterHeader(
+            categories = uiState.categories,
+            selectedCategory = uiState.selectedCategory,
+            startDate = uiState.startDate,
+            endDate = uiState.endDate,
+            onCategorySelected = { viewModel.setCategory(it) },
+            onDateRangeSelected = { start, end -> viewModel.setDateRange(start, end) },
+            onClearFilters = { viewModel.clearFilters() }
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -203,5 +218,192 @@ fun TransactionCard(transaction: TransactionItem) {
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterHeader(
+    categories: List<String>,
+    selectedCategory: String?,
+    startDate: java.util.Date?,
+    endDate: java.util.Date?,
+    onCategorySelected: (String?) -> Unit,
+    onDateRangeSelected: (java.util.Date?, java.util.Date?) -> Unit,
+    onClearFilters: () -> Unit
+) {
+    var categoryDropdownExpanded by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var datePickerType by remember { mutableStateOf("start") }
+    
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Filters",
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Category Filter
+                ExposedDropdownMenuBox(
+                    expanded = categoryDropdownExpanded,
+                    onExpandedChange = { categoryDropdownExpanded = it },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory ?: "All Categories",
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    
+                    ExposedDropdownMenu(
+                        expanded = categoryDropdownExpanded,
+                        onDismissRequest = { categoryDropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("All Categories") },
+                            onClick = { 
+                                onCategorySelected(null)
+                                categoryDropdownExpanded = false
+                            }
+                        )
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category) },
+                                onClick = { 
+                                    onCategorySelected(category)
+                                    categoryDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                
+                // Clear filters button
+                if (selectedCategory != null || startDate != null || endDate != null) {
+                    FilledTonalButton(
+                        onClick = onClearFilters,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear filters")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Clear")
+                    }
+                }
+            }
+            
+            // Date Range Filters
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { 
+                        datePickerType = "start"
+                        showDatePicker = true 
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Start date")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(startDate?.let { dateFormatter.format(it) } ?: "Start Date")
+                }
+                
+                OutlinedButton(
+                    onClick = { 
+                        datePickerType = "end"
+                        showDatePicker = true 
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.DateRange, contentDescription = "End date")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(endDate?.let { dateFormatter.format(it) } ?: "End Date")
+                }
+            }
+            
+            // Active filters summary
+            if (selectedCategory != null || startDate != null || endDate != null) {
+                val filters = mutableListOf<String>()
+                selectedCategory?.let { filters.add("Category: $it") }
+                if (startDate != null && endDate != null) {
+                    filters.add("Date: ${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}")
+                } else {
+                    startDate?.let { filters.add("From: ${dateFormatter.format(it)}") }
+                    endDate?.let { filters.add("Until: ${dateFormatter.format(it)}") }
+                }
+                
+                Text(
+                    text = "Active filters: ${filters.joinToString(", ")}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+    
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        
+        DatePickerDialog(
+            onDateSelected = { selectedDateMillis ->
+                selectedDateMillis?.let { 
+                    val selectedDate = java.util.Date(it)
+                    when (datePickerType) {
+                        "start" -> onDateRangeSelected(selectedDate, endDate)
+                        "end" -> onDateRangeSelected(startDate, selectedDate)
+                    }
+                }
+            },
+            onDismiss = { showDatePicker = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialog(
+    onDateSelected: (Long?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val datePickerState = rememberDatePickerState()
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onDateSelected(datePickerState.selectedDateMillis)
+                onDismiss()
+            }) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }

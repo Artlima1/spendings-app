@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                                 ),
                                 NavigationItem(
                                     route = "transactions",
-                                    icon = R.drawable.ic_notifications_black_24dp,
+                                    icon = R.drawable.ic_item_list,
                                     label = "Transactions"
                                 )
                             )
