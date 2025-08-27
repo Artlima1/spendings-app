@@ -95,7 +95,7 @@ class NewTransactionViewModel(
     }
     
     fun updateValue(input: String) {
-        val cleanInput = input.replace(".", "").replace(",", "")
+        val cleanInput = input.replace(".", "").replace(",", "").replace("€", "").trim()
         val digitsOnly = cleanInput.filter { it.isDigit() }
         val newValue = if (digitsOnly.isNotEmpty() && digitsOnly.length <= 8) {
             digitsOnly.toIntOrNull() ?: 0
